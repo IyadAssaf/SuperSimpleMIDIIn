@@ -3,17 +3,21 @@
 #import <CoreMIDI/CoreMIDI.h>
 #import <AudioUnit/AudioUnit.h>
 
-
+/* Create an AudioUnit */
 AudioUnit instrumentUnit;
 
-/* Establisth MIDIRead and MIDI Notify functions */
-
-static void	MIDIRead(const MIDIPacketList *pktlist, void *refCon, void *connRefCon) {
+/* Establisth MIDIRead and MIDI Notify callbacks which will get MIDI data from the devices */
+#pragma mark CoreMIDi callbacks
+static void	MIDIRead(const MIDIPacketList *pktlist, void *refCon, void *srcConnRefCon) {
     
+    //Reads the source/device's name which is allocated in the MidiSetupWithSource function.
+    const char *source = srcConnRefCon;
     
+    //Extracting the data from the MIDI packets receieved.
+    MIDIPacket *packet = (MIDIPacket *)pktlist->packet;
+	Byte note = packet->data[1] & 0x7F;
+    Byte velocity = packet->data[2] & 0x7F;
     
-	MIDIPacket *packet = (MIDIPacket *)pktlist->packet;
-	
     for (int i=0; i < pktlist->numPackets; i++) {
         
 		Byte midiStatus = packet->data[0];
@@ -21,39 +25,91 @@ static void	MIDIRead(const MIDIPacketList *pktlist, void *refCon, void *connRefC
                 
 		if ((midiCommand == 0x09) || //note on
 			(midiCommand == 0x08)) { //note off
-			Byte note = packet->data[1] & 0x7F;
-			Byte velocity = packet->data[2] & 0x7F;
-            
 			
-            MusicDeviceMIDIEvent (instrumentUnit,
-                                  midiStatus,
-                                  note,
-                                  velocity,0);
-
-            NSLog(@"NOTE : %d | %d", note, velocity);
+            MusicDeviceMIDIEvent(instrumentUnit, midiStatus, note, velocity, 0);
             
-            
-            
+            NSLog(@"%s - NOTE : %d | %d", source, note, velocity);
             
 		} else {
-            
-            Byte note = packet->data[1] & 0x7F;
-			Byte velocity = packet->data[2] & 0x7F;
-            
-
-            NSLog(@"CNTRL: %d | %d", note, velocity);
+        
+            NSLog(@"%s - CNTRL  : %d | %d", source, note, velocity);
         }
-		packet = MIDIPacketNext(packet);
+		
+        //After we are done reading the data, move to the next packet.
+        packet = MIDIPacketNext(packet);
+        
 	}
     
 }
 
 void NotificationProc (const MIDINotification  *message, void *refCon) {
-	printf("MIDI Notify, messageId=%d,", message->messageID);
+	NSLog(@"MIDI Notify, MessageID=%d,", message->messageID);
+}
+
+#pragma mark MIDI Source list
+void listSources ()
+{
+    unsigned long sourceCount = MIDIGetNumberOfSources();
+    for (int i=0; i<sourceCount; i++) {
+        MIDIEndpointRef source = MIDIGetSource(i);
+        CFStringRef endpointName = NULL;
+        MIDIObjectGetStringProperty(source, kMIDIPropertyName, &endpointName);
+        char endpointNameC[255];
+        CFStringGetCString(endpointName, endpointNameC, 255, kCFStringEncodingUTF8);
+        NSLog(@"Source %d - %s", i, endpointNameC);
+    }
+}
+
+#pragma mark MIDI Setup
+void MIDISetupWithSource(int sourceNo)
+{
+    MIDIClientRef client;
+	MIDIClientCreate(CFSTR("SuperSimpleMIDIIn"), NotificationProc, instrumentUnit, &client);
+    
+	MIDIPortRef inPort;
+	MIDIInputPortCreate(client, CFSTR("Input port"), MIDIRead, instrumentUnit, &inPort);
+    
+    MIDIEndpointRef source = MIDIGetSource(sourceNo);
+    CFStringRef endpointName = NULL;
+    MIDIObjectGetStringProperty(source, kMIDIPropertyName, &endpointName);
+    char endpointNameC[255];
+    CFStringGetCString(endpointName, endpointNameC, 255, kCFStringEncodingUTF8);
+    
+    //This is done manually due to the issue I currenly have with the <#void *connRefCon#> paramater of MIDIPortConnectSource not passing.
+    //I hope to have a fix soon.
+    
+    if(strncmp(endpointNameC, "Launchpad",2)==0)
+    {
+        MIDIPortConnectSource(inPort, source, (void*)"Launchpad");
+        NSLog(@"Recieving MIDI data from Launchpad");
+    };
+    if(strncmp(endpointNameC, "Controls",2)==0)
+    {
+        MIDIPortConnectSource(inPort, source, (void*)"Code");
+        NSLog(@"Recieving MIDI data from Code");
+    };
+    
+}
+
+#pragma mark - Main
+int main (int argc, const char * argv[])
+{
+	@autoreleasepool {
+        
+    listSources();           //See which sources you'd like to connect and then connect them as below.
+        
+    MIDISetupWithSource(6);  //Connecting source 6 - Novation Launchpad.
+    MIDISetupWithSource(7);  //Connecting source 7 - Livid Code.
+
+	CFRunLoopRun();          //Loop this for constant data updates.
+
+    }
+	return 0;
 }
 
 
-void setupMIDI() {
+#pragma mark Unused function for next commit.
+void setupMIDI() { //Currently unused function.
 	
 	MIDIClientRef client;
 	MIDIClientCreate(CFSTR("SuperSimpleMIDIIn"), NotificationProc, instrumentUnit, &client);
@@ -61,61 +117,20 @@ void setupMIDI() {
 	MIDIPortRef inPort;
 	MIDIInputPortCreate(client, CFSTR("Input port"), MIDIRead, instrumentUnit, &inPort);
     
-    NSLog(@"********************************");
-    NSLog(@"   Current MIDI Input devices   ");
-    NSLog(@"********************************");
-    
     unsigned long sourceCount = MIDIGetNumberOfSources();
-	for (int i = 0; i < sourceCount; ++i) {
-		MIDIEndpointRef src = MIDIGetSource(i);
-		CFStringRef endpointName = NULL;
-		MIDIObjectGetStringProperty(src, kMIDIPropertyName, &endpointName);
-		char endpointNameC[255];
-		CFStringGetCString(endpointName, endpointNameC, 255, kCFStringEncodingUTF8);
-		NSLog(@"%d - %s", i, endpointNameC);
-	}
     
-    NSLog(@":> Type the number of the device you would like input from");
-
-    int devNo = 0;
-    
-    printf(":>");
-    scanf("%d", &devNo);
-
-    MIDIEndpointRef src = MIDIGetSource(devNo);
-	CFStringRef endpointName = NULL;
-    MIDIObjectGetStringProperty(src, kMIDIPropertyName, &endpointName);
-    char endpointNameC[255];
-    CFStringGetCString(endpointName, endpointNameC, 255, kCFStringEncodingUTF8);
-    NSLog(@":> Now receiving input from %s...", endpointNameC);
-    MIDIPortConnectSource(inPort, src, NULL);
+    for (int i=0; i<sourceCount; i++) {
+        MIDIEndpointRef src = MIDIGetSource(i);
+        CFStringRef endpointName = NULL;
+        MIDIObjectGetStringProperty(src, kMIDIPropertyName, &endpointName);
+        char endpointNameC[255];
+        CFStringGetCString(endpointName, endpointNameC, 255, kCFStringEncodingUTF8);
+        
+        MIDIPortConnectSource(inPort, src, (void*)"NameOfDevice"); //This works.
+        MIDIPortConnectSource(inPort, src, (void*)endpointNameC); //This doesn't work..
+        char *string1 = endpointNameC;
+        MIDIPortConnectSource(inPort, src, (void*)string1); //and this doesn't work either. FIX needed for automation.
+    }
 }
 
-
-
-#pragma mark - main
-
-int main (int argc, const char * argv[])
-{
-    int interrupt = -1;
-    
-	@autoreleasepool {
-
-        
-    if (interrupt<0) {
-        setupMIDI();
-    }
-        
-    
-        
-    scanf("%d", &interrupt);
-    
-        
-        
-	CFRunLoopRun();
-	// run until aborted with control-C
-
-    }
-	return 0;
-}
 

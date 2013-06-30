@@ -11,7 +11,6 @@
 		E22DFA60177F2D67003F72E6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E22DFA5F177F2D67003F72E6 /* main.m */; };
 		E22DFA64177F2D67003F72E6 /* SuperSimpleMIDIIn.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = E22DFA63177F2D67003F72E6 /* SuperSimpleMIDIIn.1 */; };
 		E22DFA6B177F2D7A003F72E6 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E22DFA6A177F2D7A003F72E6 /* CoreMIDI.framework */; };
-		E22DFA6F177F4F5D003F72E6 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E22DFA6E177F4F5D003F72E6 /* CoreFoundation.framework */; };
 		E22DFA71177F4FEC003F72E6 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E22DFA70177F4FEC003F72E6 /* AudioUnit.framework */; };
 /* End PBXBuildFile section */
 
@@ -35,8 +34,6 @@
 		E22DFA62177F2D67003F72E6 /* SuperSimpleMIDIIn-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SuperSimpleMIDIIn-Prefix.pch"; sourceTree = "<group>"; };
 		E22DFA63177F2D67003F72E6 /* SuperSimpleMIDIIn.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = SuperSimpleMIDIIn.1; sourceTree = "<group>"; };
 		E22DFA6A177F2D7A003F72E6 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
-		E22DFA6C177F2E3B003F72E6 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
-		E22DFA6E177F4F5D003F72E6 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		E22DFA70177F4FEC003F72E6 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -46,7 +43,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E22DFA71177F4FEC003F72E6 /* AudioUnit.framework in Frameworks */,
-				E22DFA6F177F4F5D003F72E6 /* CoreFoundation.framework in Frameworks */,
 				E22DFA6B177F2D7A003F72E6 /* CoreMIDI.framework in Frameworks */,
 				E22DFA5D177F2D67003F72E6 /* Foundation.framework in Frameworks */,
 			);
@@ -76,8 +72,6 @@
 			isa = PBXGroup;
 			children = (
 				E22DFA70177F4FEC003F72E6 /* AudioUnit.framework */,
-				E22DFA6E177F4F5D003F72E6 /* CoreFoundation.framework */,
-				E22DFA6C177F2E3B003F72E6 /* AudioToolbox.framework */,
 				E22DFA6A177F2D7A003F72E6 /* CoreMIDI.framework */,
 				E22DFA5C177F2D67003F72E6 /* Foundation.framework */,
 			);
@@ -256,6 +250,7 @@
 				E22DFA69177F2D67003F72E6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
