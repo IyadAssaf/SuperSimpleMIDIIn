@@ -107,7 +107,6 @@ int main (int argc, const char * argv[])
 	return 0;
 }
 
-
 #pragma mark Unused function for next commit.
 void setupMIDI() { //Currently unused function.
 	
@@ -132,5 +131,4 @@ void setupMIDI() { //Currently unused function.
         MIDIPortConnectSource(inPort, src, (void*)string1); //and this doesn't work either. FIX needed for automation.
     }
 }
-
 
